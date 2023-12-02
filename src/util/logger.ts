@@ -1,26 +1,28 @@
 const Log = (message: any, type: string = "normal"): void => {
-  if (process.env.NODE_ENV === "development") {
-    switch (type) {
-      case "normal":
-        console.log(message.cyan.underline);
-        break;
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
 
-      case "success":
-        console.log(`SUCCESS ${message}`.green.underline);
-        break;
+  switch (type) {
+    case "normal":
+      console.log(message.cyan.underline);
+      break;
 
-      case "warning":
-        console.log(`WARNING ${message}`.yellow.underline);
-        break;
+    case "success":
+      console.log(`SUCCESS ${message}`.green.underline);
+      break;
 
-      case "error":
-        console.log(`ERROR ${message}`.red.underline);
-        break;
+    case "warning":
+      console.log(`WARNING ${message}`.yellow.underline);
+      break;
 
-      default:
-        console.log(message.cyan.underline);
-        break;
-    }
+    case "error":
+      console.log(`ERROR ${message}`.red.underline);
+      break;
+
+    default:
+      console.log(message.cyan.underline);
+      break;
   }
 };
 
