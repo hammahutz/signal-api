@@ -82,7 +82,7 @@ const updateGoal = expressAsyncHandler(async (req: Request, res: Response) => {
 
   Log(`Updated goal with id ${id}\n${updatedGoal}`, "success");
 
-  res.status(200).json({id: id, text: req.body.text})
+  res.status(200).json({ id: id, text: req.body.text });
 });
 
 /**
@@ -105,7 +105,7 @@ const deleteGoal = expressAsyncHandler(async (req: Request, res: Response) => {
   var successMessage = `Deleted goal with id ${id}\n${deleteGoal}`;
   Log(successMessage, "success");
 
-  res.status(200).json({id: id});
+  res.status(200).json({ id: id });
 });
 
 const GoalController = () => {

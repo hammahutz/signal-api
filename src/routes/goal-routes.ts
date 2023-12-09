@@ -1,4 +1,4 @@
-import express, { Router } from "express";
+import { Router } from "express";
 import {
   getGoals,
   getGoal,
@@ -7,10 +7,10 @@ import {
   deleteGoal,
 } from "../controllers/goal-controller";
 
-const goalRouter: Router = express.Router();
+const GoalRouter: Router = Router();
 
-goalRouter.route("/").get(getGoals).post(setGoal);
+GoalRouter.route("/").get(getGoals).post(setGoal);
 
-goalRouter.route("/:id").get(getGoal).put(updateGoal).delete(deleteGoal);
+GoalRouter.route("/:id").get(getGoal).put(updateGoal).delete(deleteGoal);
 
-export default goalRouter;
+export default GoalRouter;
