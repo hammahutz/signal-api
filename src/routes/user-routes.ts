@@ -1,5 +1,6 @@
 import { Router } from "express";
-import {registerUser, getUsers} from "../controllers/user-controller";
+import {registerUser, getUsers, loginUser, getUser} from "../controllers/user-controller";
+import { protect } from "../middleware/authMiddleware";
 
 const UserRouter: Router = Router();
 
@@ -11,5 +12,11 @@ UserRouter.route("/:id")
     .get()
     .put()
     .delete();
+
+UserRouter.route("/login")
+    .post(loginUser)
+
+    UserRouter.route("/me")
+    .get(protect, getUser)
 
 export default UserRouter;

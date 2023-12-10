@@ -1,14 +1,21 @@
 import { Request, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
-import {validUserModel, userExists, createUser, getAllUsers} from "../service/user-service";
+import {
+  validUserModel,
+  userExists,
+  createUser,
+  getAllUsers,
+  findUserByEmail,
+  passwordValid,
+  generateJWT,
+} from "../service/user-service";
+import bcrypt from "bcryptjs";
+import { Log } from "../util/logger";
 
-
-const getUsers = expressAsyncHandler(
-  async (req: Request, res, Response) => {
-    const users = await getAllUsers();
-    res.status(200).json(users);
-  }
-);
+const getUsers = expressAsyncHandler(async (req: Request, res, Response) => {
+  const users = await getAllUsers();
+  res.status(200).json(users);
+});
 
 /**
  * @description Register a new user
@@ -17,14 +24,14 @@ const getUsers = expressAsyncHandler(
  */
 const registerUser = expressAsyncHandler(
   async (req: Request, res: Response) => {
-    const {name, email, password} = req.body;
+    const { name, email, password } = req.body;
 
-    if(!validUserModel(name, email, password)){
+    if (!validUserModel(name, email, password)) {
       res.status(400);
-      throw new Error('Please add all fields');
+      throw new Error("Please add all fields");
     }
 
-    if(await userExists(email)){
+    if (await userExists(email)) {
       res.status(400);
       throw new Error(`User with email ${email} already exist`);
     }
@@ -39,15 +46,38 @@ const registerUser = expressAsyncHandler(
       _id: user.id,
       name: user.name,
       email: user.email,
+      token: generateJWT(user.id)
     });
   }
 );
 
 const loginUser = expressAsyncHandler(async (req: Request, res: Response) => {
-  res.json({ message: "loginUser" });
+  const { email, password } = req.body;
+  const user = await findUserByEmail(email);
+
+  if (!user) {
+    res.status(400);
+    throw new Error(`Invalid credentials, try again`);
+  }
+
+  if (await passwordValid(password, user.password)) {
+    res.json({
+      _id: user.id,
+      name: user.name,
+      email: user.email,
+      token: generateJWT(user.id)
+    });
+  } else {
+    res.status(400);
+    throw new Error(`Invalid credentials, try again`);
+  }
 });
 
 const getUser = expressAsyncHandler(async (req: Request, res: Response) => {
   res.json({ message: "Get user" });
 });
-export { getUsers, registerUser };
+
+
+
+
+export { getUsers, getUser, registerUser, loginUser};

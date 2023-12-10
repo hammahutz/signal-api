@@ -4,6 +4,7 @@ import User from "../model/user-model";
 import bcrypt from "bcryptjs";
 import { StringExpression } from "mongoose";
 import { Log } from "../util/logger";
+import jwt  from "jsonwebtoken";
 
 export const validUserModel = (
   name: string,
@@ -37,5 +38,28 @@ export const createUser = async (
 
 export const getAllUsers = async () => {
   const users = await User.find();
-  return users
+  return users;
 };
+
+export const findUserByEmail = async (email: string) =>
+  await User.findOne({ email });
+
+export const findUserById = async (_id: string) => await User.findById(_id);
+
+//TODO Gör så att det går att använda string som type
+export const passwordValid = async (passwordA: any, passwordB: any) => {
+  const validRequest = passwordA && passwordB;
+  const validPassword = await bcrypt.compare(passwordA, passwordB);
+
+  return validRequest && validPassword;
+};
+
+export const generateJWT = (id: string) => {
+  if(!process.env.JWT_SECRET){
+    throw new Error('JWT_SECRET is not defind in the environment variables');
+  }
+
+  return jwt.sign({id}, process.env.JWT_SECRET, {
+    expiresIn: '30d'
+  })
+}
