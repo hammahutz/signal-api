@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
-import UserService from "../service/user-service";
+import {validUserModel, userExists, createUser, getAllUsers} from "../service/user-service";
 
-const getAllUsers = expressAsyncHandler(
+
+const getUsers = expressAsyncHandler(
   async (req: Request, res, Response) => {
-    const userService = UserService(req, res)
-    const users = userService.getAllUsers();
+    const users = await getAllUsers();
     res.status(200).json(users);
   }
 );
@@ -17,11 +17,23 @@ const getAllUsers = expressAsyncHandler(
  */
 const registerUser = expressAsyncHandler(
   async (req: Request, res: Response) => {
-    const userService = UserService(req, res);
+    const {name, email, password} = req.body;
 
-    userService.checkUserModel();
-    await userService.checkIfUserExists();
-    const user = await userService.createUser();
+    if(!validUserModel(name, email, password)){
+      res.status(400);
+      throw new Error('Please add all fields');
+    }
+
+    if(await userExists(email)){
+      res.status(400);
+      throw new Error(`User with email ${email} already exist`);
+    }
+
+    const user = await createUser(name, email, password);
+    if (!user) {
+      res.status(500);
+      throw new Error(`Can't create user. Please contact admin`);
+    }
 
     res.status(201).json({
       _id: user.id,
@@ -38,4 +50,4 @@ const loginUser = expressAsyncHandler(async (req: Request, res: Response) => {
 const getUser = expressAsyncHandler(async (req: Request, res: Response) => {
   res.json({ message: "Get user" });
 });
-export { registerUser };
+export { getUsers, registerUser };

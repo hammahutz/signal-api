@@ -1,10 +1,10 @@
 import { Router } from "express";
-import {registerUser} from "../controllers/user-controller";
+import {registerUser, getUsers} from "../controllers/user-controller";
 
 const UserRouter: Router = Router();
 
 UserRouter.route("/")
-    .get()
+    .get(getUsers)
     .post(registerUser);
 
 UserRouter.route("/:id")
