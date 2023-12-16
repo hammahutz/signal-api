@@ -9,8 +9,8 @@ import { stat } from "fs";
  * @route GET /api/goals
  * @access Private
  */
-const getGoals = expressAsyncHandler(async (req: Request, res: Response) => {
-  const goals = await Goal.find();
+export const getGoals = expressAsyncHandler(async (req: Request, res: Response) => {
+  const goals = await Goal.find({ user: req.user._id });
   Log(`getGoals\n${goals}`, "success");
   res.status(200).json(goals);
 });
@@ -20,9 +20,9 @@ const getGoals = expressAsyncHandler(async (req: Request, res: Response) => {
  * @route GET /api/goals/:id
  * @access Private
  */
-const getGoal = expressAsyncHandler(async (req: Request, res: Response) => {
+export const getGoal = expressAsyncHandler(async (req: Request, res: Response) => {
   var id = req.params.id;
-  const goal = await Goal.findById(id);
+  const goal = await Goal.findById(id).where("user", req.user._id);
 
   if (!goal) {
     var errorMessage = `Bad request! Cant find the goal with id: ${id}`;
@@ -40,7 +40,7 @@ const getGoal = expressAsyncHandler(async (req: Request, res: Response) => {
  * @route SET /api/goals
  * @access Private
  */
-const setGoal = expressAsyncHandler(async (req: Request, res: Response) => {
+export const setGoal = expressAsyncHandler(async (req: Request, res: Response) => {
   if (!req.body.text) {
     var errorMessage =
       "Bad request! Cant set the goal, please add a text field.";
@@ -50,6 +50,7 @@ const setGoal = expressAsyncHandler(async (req: Request, res: Response) => {
   }
   const goal = await Goal.create({
     text: req.body.text,
+    user: req.user._id,
   });
   Log(`A new goal was set\n${goal}`, "success");
   res.status(201).json(goal);
@@ -60,7 +61,7 @@ const setGoal = expressAsyncHandler(async (req: Request, res: Response) => {
  * @route Update /api/goals/:id
  * @access Private
  */
-const updateGoal = expressAsyncHandler(async (req: Request, res: Response) => {
+export const updateGoal = expressAsyncHandler(async (req: Request, res: Response) => {
   if (!req.body.text) {
     var errorMessage = `Bad request! Cant update goal, please add a text field`;
     Log(errorMessage, "error");
@@ -69,7 +70,7 @@ const updateGoal = expressAsyncHandler(async (req: Request, res: Response) => {
   }
 
   var id = req.params.id;
-  const goal = await Goal.findById(id);
+  const goal = await Goal.findById(id).where("user", req.user._id);
 
   if (!goal) {
     var errorMessage = `Bad request! Cant find the goal to update with id: ${id}`;
@@ -78,7 +79,7 @@ const updateGoal = expressAsyncHandler(async (req: Request, res: Response) => {
     throw new Error(errorMessage);
   }
 
-  const updatedGoal = await Goal.findByIdAndUpdate(id, req.body, { new: true });
+  const updatedGoal = await Goal.findByIdAndUpdate(id, req.body, { new: true }).where("user", req.user._id);
 
   Log(`Updated goal with id ${id}\n${updatedGoal}`, "success");
 
@@ -90,9 +91,9 @@ const updateGoal = expressAsyncHandler(async (req: Request, res: Response) => {
  * @route Delete /api/goals/:id
  * @access Private
  */
-const deleteGoal = expressAsyncHandler(async (req: Request, res: Response) => {
+export const deleteGoal = expressAsyncHandler(async (req: Request, res: Response) => {
   var id = req.params.id;
-  const goal = await Goal.findById(id);
+  const goal = await Goal.findById(id).where("user", req.user._id);
 
   if (!goal) {
     var errorMessage = `Bad request! Cant find the goal to delete with id: ${id}`;
@@ -101,22 +102,9 @@ const deleteGoal = expressAsyncHandler(async (req: Request, res: Response) => {
     throw new Error(errorMessage);
   }
 
-  var deletedGoal = await Goal.findByIdAndDelete(id);
-  var successMessage = `Deleted goal with id ${id}\n${deleteGoal}`;
+  var deletedGoal = await Goal.findByIdAndDelete(id).where("user", req.user._id);;
+  var successMessage = `Deleted goal with id ${id}\n${deletedGoal}`;
   Log(successMessage, "success");
 
   res.status(200).json({ id: id });
 });
-
-const GoalController = () => {
-  return {
-    getGoals,
-    getGoal,
-    setGoal,
-    updateGoal,
-    deleteGoal,
-  };
-};
-
-export default GoalController;
-export { getGoals, getGoal, setGoal, updateGoal, deleteGoal };

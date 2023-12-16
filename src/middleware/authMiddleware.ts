@@ -1,13 +1,12 @@
 import { Request, Response } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import expressAsyncHandler from "express-async-handler";
 import User from "../model/user-model";
-import { log } from "console";
 
 const protect = expressAsyncHandler(
   async (req: Request, res: Response, next) => {
     if (!process.env.JWT_SECRET) {
-      throw new Error("JWT_SECRET is not defind in the environment variables");
+      throw new Error("JWT_SECRET is not defined in the environment variables");
     }
 
     let token;
@@ -17,9 +16,13 @@ const protect = expressAsyncHandler(
       req.headers.authorization.startsWith("Bearer")
     ) {
       try {
+        //Get Token
         token = req.headers.authorization.split(" ")[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = await User.findById(decoded.id).select("-password");
+        //Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
+
+        //Get user from token
+        req.user = await User.findById(decoded.id).select("_id name email");
 
         next();
       } catch (error) {
@@ -33,7 +36,6 @@ const protect = expressAsyncHandler(
       res.status(400);
       throw new Error("Not authorized, no token");
     }
-
   }
 );
 

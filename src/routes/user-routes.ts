@@ -1,12 +1,12 @@
 import { Router } from "express";
-import {registerUser, getUsers, loginUser, getUser} from "../controllers/user-controller";
+import * as userController from "../controllers/user-controller";
 import { protect } from "../middleware/authMiddleware";
 
 const UserRouter: Router = Router();
 
 UserRouter.route("/")
-    .get(getUsers)
-    .post(registerUser);
+    .get(userController.getUsers)
+    .post(userController.registerUser);
 
 UserRouter.route("/:id")
     .get()
@@ -14,9 +14,9 @@ UserRouter.route("/:id")
     .delete();
 
 UserRouter.route("/login")
-    .post(loginUser)
+    .post(userController.loginUser)
 
     UserRouter.route("/me")
-    .get(protect, getUser)
+    .get(protect, userController.getMe)
 
 export default UserRouter;

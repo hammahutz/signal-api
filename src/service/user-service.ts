@@ -1,10 +1,9 @@
 import { Request, Response } from "express";
 import apiError from "../util/apiError";
-import User from "../model/user-model";
+import User, { IUser } from "../model/user-model";
 import bcrypt from "bcryptjs";
-import { StringExpression } from "mongoose";
-import { Log } from "../util/logger";
-import jwt  from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+import { ObjectId } from "mongoose";
 
 export const validUserModel = (
   name: string,
@@ -44,22 +43,24 @@ export const getAllUsers = async () => {
 export const findUserByEmail = async (email: string) =>
   await User.findOne({ email });
 
-export const findUserById = async (_id: string) => await User.findById(_id);
+export const findUserById = async (_id: ObjectId) => await User.findById(_id);
 
 //TODO Gör så att det går att använda string som type
-export const passwordValid = async (passwordA: any, passwordB: any) => {
-  const validRequest = passwordA && passwordB;
-  const validPassword = await bcrypt.compare(passwordA, passwordB);
+export const passwordValid = async (
+  password: string,
+  dbUser: IUser
+): Promise<boolean> => {
+  const validPassword = bcrypt.compare(password, dbUser.password);
 
-  return validRequest && validPassword;
+  return validPassword;
 };
 
 export const generateJWT = (id: string) => {
-  if(!process.env.JWT_SECRET){
-    throw new Error('JWT_SECRET is not defind in the environment variables');
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is not defind in the environment variables");
   }
 
-  return jwt.sign({id}, process.env.JWT_SECRET, {
-    expiresIn: '30d'
-  })
-}
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: "30d",
+  });
+};
