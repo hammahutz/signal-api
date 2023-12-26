@@ -5,18 +5,14 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { ObjectId } from "mongoose";
 
-export const validUserModel = (
-  name: string,
-  email: string,
-  password: string
-) => {
+export const validUserModel = ({ name, email, password }: IUser) => {
   if (!name || !email || !password) {
     return false;
   }
   return true;
 };
 
-export const userExists = async (email: string) => {
+export const userExists = async ({ email }: IUser) => {
   const user = await User.findOne({ email });
   if (user) {
     return true;
@@ -24,12 +20,12 @@ export const userExists = async (email: string) => {
   return false;
 };
 
-export const createUser = async (
-  name: string,
-  email: string,
-  password: string
-) => {
-  const salt = await bcrypt.genSalt(10);
+export const createUser = async ({ name, email, password }: IUser) => {
+  if (!process.env.GEN_SALT) {
+    throw new Error("GEN_SALT is not defined in the environment variables");
+  }
+  const saltGenerations = parseInt(process.env.GEN_SALT) ?? 10;
+  const salt = await bcrypt.genSalt(saltGenerations);
   const hashedPassword: string = await bcrypt.hash(password, salt);
   const user = await User.create({ name, email, password: hashedPassword });
   return user;
@@ -47,7 +43,7 @@ export const findUserById = async (_id: ObjectId) => await User.findById(_id);
 
 //TODO Gör så att det går att använda string som type
 export const passwordValid = async (
-  password: string,
+  { password }: IUser,
   dbUser: IUser
 ): Promise<boolean> => {
   const validPassword = bcrypt.compare(password, dbUser.password);
@@ -55,12 +51,12 @@ export const passwordValid = async (
   return validPassword;
 };
 
-export const generateJWT = (id: string) => {
+export const generateJWT = ({ _id }: IUser) => {
   if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET is not defind in the environment variables");
   }
 
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+  return jwt.sign({ _id }, process.env.JWT_SECRET, {
     expiresIn: "30d",
   });
 };

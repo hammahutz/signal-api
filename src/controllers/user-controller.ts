@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import * as userService from "../service/user-service";
-import User from "../model/user-model";
+import User, { IUser } from "../model/user-model";
 
 export const getUsers = expressAsyncHandler(
   async (req: Request, res, Response) => {
@@ -17,54 +17,60 @@ export const getUsers = expressAsyncHandler(
  */
 export const registerUser = expressAsyncHandler(
   async (req: Request, res: Response) => {
-    const { name, email, password } = req.body;
+    const userData = req.body as IUser;
 
-    if (!userService.validUserModel(name, email, password)) {
+    if (!userService.validUserModel(userData)) {
       res.status(400);
-      throw new Error("Please add all fields");
+      throw new Error(
+        `Please add all fields. Name: ${
+          userData.name ? "Valid" : "Invalid"
+        }, Email: ${userData.email ? "Valid" : "Invalid"}, Password: ${
+          userData.password ? "Valid" : "Invalid"
+        }`
+      );
     }
 
-    if (await userService.userExists(email)) {
+    if (await userService.userExists(userData)) {
       res.status(400);
-      throw new Error(`User with email ${email} already exist`);
+      throw new Error(`User with email ${userData.email} already exist`);
     }
 
-    const user = await userService.createUser(name, email, password);
-    if (!user) {
+    const newUser = await userService.createUser(userData);
+    if (!newUser) {
       res.status(500);
       throw new Error(`Can't create user. Please contact admin`);
     }
 
     res.status(201).json({
-      _id: user.id,
-      name: user.name,
-      email: user.email,
-      token: userService.generateJWT(user.id),
+      id: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+      token: userService.generateJWT(newUser.id),
     });
   }
 );
 
 export const loginUser = expressAsyncHandler(
   async (req: Request, res: Response) => {
-    const { email, password } = req.body;
-    const user = await userService.findUserByEmail(email);
+    const userData = req.body as IUser;
+    const userDb = await userService.findUserByEmail(userData.email);
 
-    if (!user) {
+    if (!userDb) {
       res.status(400);
       throw new Error(`Invalid credentials, try again`);
     }
 
-    if (!(await userService.passwordValid(password, user))) {
+    if (!(await userService.passwordValid(userData, userDb))) {
       res.status(400);
       throw new Error(`Invalid credentials, try again`);
     }
 
-    var token = userService.generateJWT(user.id);
+    var token = userService.generateJWT(userDb.id);
 
     res.json({
-      _id: user.id,
-      name: user.name,
-      email: user.email,
+      _id: userDb.id,
+      name: userDb.name,
+      email: userDb.email,
       token: token,
     });
   }
