@@ -72,6 +72,7 @@ export const loginUser = expressAsyncHandler(
       name: userDb.name,
       email: userDb.email,
       token: token,
+
     });
   }
 );
