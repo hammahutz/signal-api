@@ -42,10 +42,10 @@ export const registerUser = expressAsyncHandler(
     }
 
     res.status(201).json({
-      id: newUser.id,
+      id: newUser._id,
       name: newUser.name,
       email: newUser.email,
-      token: userService.generateJWT(newUser.id),
+      token: userService.generateJWT(newUser._id),
     });
   }
 );
@@ -65,10 +65,10 @@ export const loginUser = expressAsyncHandler(
       throw new Error(`Invalid credentials, try again`);
     }
 
-    var token = userService.generateJWT(userDb.id);
+    var token = userService.generateJWT(userDb._id);
 
     res.json({
-      _id: userDb.id,
+      _id: userDb._id,
       name: userDb.name,
       email: userDb.email,
       token: token,

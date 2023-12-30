@@ -3,6 +3,7 @@ import expressAsyncHandler from "express-async-handler";
 import Goal from "../model/goal-model";
 import { Log } from "../util/logger";
 import { stat } from "fs";
+import { log } from "console";
 
 /**
  * @desc Get all goals

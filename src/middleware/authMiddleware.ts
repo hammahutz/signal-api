@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import expressAsyncHandler from "express-async-handler";
 import User from "../model/user-model";
+import { log } from "console";
 
 const protect = expressAsyncHandler(
   async (req: Request, res: Response, next) => {
@@ -21,6 +22,7 @@ const protect = expressAsyncHandler(
         //Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
 
+        log(decoded.id)
         //Get user from token
         req.user = await User.findById(decoded.id).select("_id name email");
 

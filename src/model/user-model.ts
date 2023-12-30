@@ -1,17 +1,20 @@
+import { ObjectId, Schema, model, Types } from "mongoose";
 
-import { ObjectId, Schema, model } from "mongoose";
-
-export interface IUser{
-  _id: ObjectId,
-  name: string,
-  email: string,
-  password: string
+interface IUser {
+  _id: Types.ObjectId;
+  name: string;
+  email: string;
+  password: string;
 }
 
 const UserSchema = new Schema<IUser>(
   {
     name: { type: String, require: [true, "Please add a name!"] },
-    email: { type: String, require: [true, "Please add a email!"], unique: true },
+    email: {
+      type: String,
+      require: [true, "Please add a email!"],
+      unique: true,
+    },
     password: { type: String, require: [true, "Please add a password!"] },
   },
   {
@@ -20,4 +23,4 @@ const UserSchema = new Schema<IUser>(
 );
 
 export default model("User", UserSchema);
-
+export { IUser };
