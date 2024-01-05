@@ -42,6 +42,7 @@ export const getGoal = expressAsyncHandler(async (req: Request, res: Response) =
  * @access Private
  */
 export const setGoal = expressAsyncHandler(async (req: Request, res: Response) => {
+  console.log(req.body)
   if (!req.body.text) {
     var errorMessage =
       "Bad request! Cant set the goal, please add a text field.";
