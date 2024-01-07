@@ -4,6 +4,7 @@ import User, {IUser} from "../model/user-model";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { ObjectId } from "mongoose";
+import { log } from "console";
 
 export const validUserModel = ({ name, email, password }: IUser) => {
   if (!name || !email || !password) {
@@ -53,12 +54,13 @@ export const passwordValid = async (
   return validPassword;
 };
 
-export const generateJWT = ({ _id: id }: IUser) => {
+export const generateJWT = ({ _id }: IUser) => {
   if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET is not defind in the environment variables");
   }
 
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+  const id = _id.toString();
+  return jwt.sign({ _id: id }, process.env.JWT_SECRET, {
     expiresIn: "30d",
   });
 };

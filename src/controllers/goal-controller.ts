@@ -11,6 +11,7 @@ import { log } from "console";
  * @access Private
  */
 export const getGoals = expressAsyncHandler(async (req: Request, res: Response) => {
+
   const goals = await Goal.find({ user: req.user._id });
   Log(`getGoals\n${goals}`, "success");
   res.status(200).json(goals);

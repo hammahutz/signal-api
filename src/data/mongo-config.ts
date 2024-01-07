@@ -5,6 +5,7 @@ const ConnectMongoDB = async () => {
     try {
         const conn = await connect(process.env.MONGO_URI!);
         Log(`MongoDB Connected: ${conn.connection.host}`);
+        console.log(process.env.NODE_ENV)
 
     } catch (error) {
         Log(error, "error");
