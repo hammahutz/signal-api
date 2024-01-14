@@ -4,7 +4,7 @@ export interface IGoal {
   _id: ObjectId;
   user: ObjectId;
   text?: string;
-  completeDate?: Date;
+  completeDate?: Date | null;
   archiveDate?: Date;
 }
 

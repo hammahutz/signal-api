@@ -3,6 +3,7 @@ import expressAsyncHandler from "express-async-handler";
 import Goal from "../model/goal-model";
 import { LogError, LogSuccess } from "../util";
 import { IGoal, IGoalUpdate } from "../interfaces";
+import { UpdateQuery } from "mongoose";
 
 /**
  *
@@ -81,42 +82,36 @@ export const updateGoal = expressAsyncHandler(
   }
 );
 
-export const completeGoal = expressAsyncHandler(async (req: Request<{ id: string }>, res: Response) => {
-  const goalId = req.params.id;
-  const userID = req.user._id;
+export const setStatus = expressAsyncHandler(
+  async (req: Request<{ id: string }, object, { isCompleted: boolean }>, res: Response) => {
+    const goalId = req.params.id;
+    const userID = req.user._id;
+    const goalStatus = req.body;
 
-  const completedGoal = await Goal.findByIdAndUpdate(goalId, { completeDate: new Date(Date.now()) } as IGoalUpdate, {
-    new: true,
-  }).where("user", userID);
+    if (goalStatus.isCompleted === undefined) {
+      const errorMessage = `Can't toggle goal with ${goalId}`;
+      LogError(errorMessage);
+      res.status(400).json({ message: "Bad Request, did not include 'isCompleted: boolean'" });
+      throw new Error(errorMessage);
+    }
 
-  if (!updateGoal || completedGoal?.errors || !completedGoal?.isModified) {
-    const errorMessage = `Can't complete goal with ${goalId} \n${completedGoal?.errors}\nIs modified?:${completedGoal?.isModified}`;
-    LogError(errorMessage);
-    throw new Error(errorMessage);
+    const updateQuery: UpdateQuery<IGoal> = goalStatus.isCompleted
+      ? { completeDate: new Date(Date.now()) }
+      : { $unset: { completeDate: "" } };
+
+    const updatedGoal = await Goal.findByIdAndUpdate(goalId, updateQuery, { new: true }).where("user", userID);
+
+    if (!updatedGoal || updatedGoal?.errors || !updatedGoal?.isModified) {
+      const errorMessage = `Can't toggle goal with ${goalId} \n${updatedGoal?.errors}\nIs modified?:${updatedGoal?.isModified}`;
+      LogError(errorMessage);
+      throw new Error(errorMessage);
+    }
+
+    LogSuccess(`Rest the goal with id ${goalId}\n${updatedGoal}`);
+
+    res.status(200).json(updatedGoal);
   }
-
-  LogSuccess(`Updated goal with id ${goalId}\n${completedGoal}`);
-
-  res.status(200).json(completedGoal);
-});
-
-export const resetGoal = expressAsyncHandler(async (req: Request<{ id: string }>, res: Response) => {
-  const goalId = req.params.id;
-  const userID = req.user._id;
-
-  const goalDocument = await Goal.findById(goalId);
-  const goalObject = goalDocument?.toObject<IGoal>();
-
-  if (!updateGoal || goal?.errors || !goal?.isModified) {
-    const errorMessage = `Can't complete goal with ${goalId} \n${goal?.errors}\nIs modified?:${goal?.isModified}`;
-    LogError(errorMessage);
-    throw new Error(errorMessage);
-  }
-
-  LogSuccess(`Updated goal with id ${goalId}\n${goal}`);
-
-  res.status(200).json(goal);
-});
+);
 
 /**
  * @desc Delete a goal

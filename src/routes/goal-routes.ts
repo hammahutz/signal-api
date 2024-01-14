@@ -11,7 +11,6 @@ GoalRouter.route("/:id")
   .patch(protect, goalController.updateGoal)
   .delete(protect, goalController.deleteGoal);
 
-GoalRouter.route("/complete/:id").patch(protect, goalController.completeGoal);
-GoalRouter.route("/reset/:id").patch(protect, goalController.resetGoal);
+GoalRouter.route("/status/:id").patch(protect, goalController.setStatus);
 
 export default GoalRouter;
