@@ -4,19 +4,12 @@ import { protect } from "../middleware/authMiddleware";
 
 const UserRouter: Router = Router();
 
-UserRouter.route("/")
-    .get(userController.getUsers)
-    .post(userController.registerUser);
+UserRouter.route("/").get(userController.getUsers).post(userController.registerUser);
 
-UserRouter.route("/:id")
-    .get()
-    .put()
-    .delete();
+UserRouter.route("/:id").get().put().delete();
 
-UserRouter.route("/login")
-    .post(userController.loginUser)
+UserRouter.route("/login").post(userController.loginUser);
 
-    UserRouter.route("/me")
-    .get(protect, userController.getMe)
+UserRouter.route("/me").get(protect, userController.getMe);
 
 export default UserRouter;

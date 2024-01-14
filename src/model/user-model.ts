@@ -1,11 +1,5 @@
-import { ObjectId, Schema, model, Types } from "mongoose";
-
-interface IUser {
-  _id: Types.ObjectId;
-  name: string;
-  email: string;
-  password: string;
-}
+import { Schema, model } from "mongoose";
+import { IUser } from "../interfaces";
 
 const UserSchema = new Schema<IUser>(
   {
@@ -23,4 +17,3 @@ const UserSchema = new Schema<IUser>(
 );
 
 export default model("User", UserSchema);
-export { IUser };

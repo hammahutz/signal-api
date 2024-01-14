@@ -1,19 +1,18 @@
 import { Request, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Goal from "../model/goal-model";
-import { Log } from "../util/logger";
-import { stat } from "fs";
-import { log } from "console";
+import { LogError, LogSuccess } from "../util";
+import { IGoal, IGoalUpdate } from "../interfaces";
 
 /**
+ *
  * @desc Get all goals
  * @route GET /api/goals
  * @access Private
  */
 export const getGoals = expressAsyncHandler(async (req: Request, res: Response) => {
-
   const goals = await Goal.find({ user: req.user._id });
-  Log(`getGoals\n${goals}`, "success");
+  LogSuccess(`getGoals\n${goals}`);
   res.status(200).json(goals);
 });
 
@@ -23,17 +22,17 @@ export const getGoals = expressAsyncHandler(async (req: Request, res: Response) 
  * @access Private
  */
 export const getGoal = expressAsyncHandler(async (req: Request, res: Response) => {
-  var id = req.params.id;
+  const id = req.params.id;
   const goal = await Goal.findById(id).where("user", req.user._id);
 
   if (!goal) {
-    var errorMessage = `Bad request! Cant find the goal with id: ${id}`;
-    Log(errorMessage, "error");
+    const errorMessage = `Bad request! Cant find the goal with id: ${id}`;
+    LogError(errorMessage);
     res.status(400);
     throw new Error(errorMessage);
   }
 
-  Log(`Get goal with id ${id}\n${goal}`, "success");
+  LogSuccess(`Get goal with id ${id}\n${goal}`);
   res.status(200).json(goal);
 });
 
@@ -43,11 +42,9 @@ export const getGoal = expressAsyncHandler(async (req: Request, res: Response) =
  * @access Private
  */
 export const setGoal = expressAsyncHandler(async (req: Request, res: Response) => {
-  console.log(req.body)
   if (!req.body.text) {
-    var errorMessage =
-      "Bad request! Cant set the goal, please add a text field.";
-    Log(errorMessage, "error");
+    const errorMessage = "Bad request! Cant set the goal, please add a text field.";
+    LogError(errorMessage);
     res.status(400);
     throw new Error(errorMessage);
   }
@@ -55,7 +52,7 @@ export const setGoal = expressAsyncHandler(async (req: Request, res: Response) =
     text: req.body.text,
     user: req.user._id,
   });
-  Log(`A new goal was set\n${goal}`, "success");
+  LogSuccess(`A new goal was set\n${goal}`);
   res.status(201).json(goal);
 });
 
@@ -64,29 +61,61 @@ export const setGoal = expressAsyncHandler(async (req: Request, res: Response) =
  * @route Update /api/goals/:id
  * @access Private
  */
-export const updateGoal = expressAsyncHandler(async (req: Request, res: Response) => {
-  if (!req.body.text) {
-    var errorMessage = `Bad request! Cant update goal, please add a text field`;
-    Log(errorMessage, "error");
-    res.status(400);
+export const updateGoal = expressAsyncHandler(
+  async (req: Request<{ id: string }, object, IGoalUpdate>, res: Response) => {
+    const goalUpdate = req.body;
+    const goalId = req.params.id;
+    const userID = req.user._id;
+
+    const updatedGoal = await Goal.findByIdAndUpdate(goalId, goalUpdate, { new: true }).where("user", userID);
+
+    if (!updateGoal || updatedGoal?.errors || !updatedGoal?.isModified) {
+      const errorMessage = `Can't update goal with ${goalId} ${goalUpdate} \n${updatedGoal?.errors}\nIs modified?:${updatedGoal?.isModified}`;
+      LogError(errorMessage);
+      throw new Error(errorMessage);
+    }
+
+    LogSuccess(`Updated goal with id ${goalId}\n${updatedGoal}`);
+
+    res.status(200).json(updatedGoal);
+  }
+);
+
+export const completeGoal = expressAsyncHandler(async (req: Request<{ id: string }>, res: Response) => {
+  const goalId = req.params.id;
+  const userID = req.user._id;
+
+  const completedGoal = await Goal.findByIdAndUpdate(goalId, { completeDate: new Date(Date.now()) } as IGoalUpdate, {
+    new: true,
+  }).where("user", userID);
+
+  if (!updateGoal || completedGoal?.errors || !completedGoal?.isModified) {
+    const errorMessage = `Can't complete goal with ${goalId} \n${completedGoal?.errors}\nIs modified?:${completedGoal?.isModified}`;
+    LogError(errorMessage);
     throw new Error(errorMessage);
   }
 
-  var id = req.params.id;
-  const goal = await Goal.findById(id).where("user", req.user._id);
+  LogSuccess(`Updated goal with id ${goalId}\n${completedGoal}`);
 
-  if (!goal) {
-    var errorMessage = `Bad request! Cant find the goal to update with id: ${id}`;
-    Log(errorMessage, "error");
-    res.status(400);
+  res.status(200).json(completedGoal);
+});
+
+export const resetGoal = expressAsyncHandler(async (req: Request<{ id: string }>, res: Response) => {
+  const goalId = req.params.id;
+  const userID = req.user._id;
+
+  const goalDocument = await Goal.findById(goalId);
+  const goalObject = goalDocument?.toObject<IGoal>();
+
+  if (!updateGoal || goal?.errors || !goal?.isModified) {
+    const errorMessage = `Can't complete goal with ${goalId} \n${goal?.errors}\nIs modified?:${goal?.isModified}`;
+    LogError(errorMessage);
     throw new Error(errorMessage);
   }
 
-  const updatedGoal = await Goal.findByIdAndUpdate(id, req.body, { new: true }).where("user", req.user._id);
+  LogSuccess(`Updated goal with id ${goalId}\n${goal}`);
 
-  Log(`Updated goal with id ${id}\n${updatedGoal}`, "success");
-
-  res.status(200).json({ id: id, text: req.body.text });
+  res.status(200).json(goal);
 });
 
 /**
@@ -94,20 +123,19 @@ export const updateGoal = expressAsyncHandler(async (req: Request, res: Response
  * @route Delete /api/goals/:id
  * @access Private
  */
-export const deleteGoal = expressAsyncHandler(async (req: Request, res: Response) => {
-  var id = req.params.id;
-  const goal = await Goal.findById(id).where("user", req.user._id);
+export const deleteGoal = expressAsyncHandler(async (req: Request<{ id: string }>, res: Response) => {
+  const id = req.params.id;
 
-  if (!goal) {
-    var errorMessage = `Bad request! Cant find the goal to delete with id: ${id}`;
-    Log(errorMessage, "error");
-    res.status(400);
+  const deletedGoal = await Goal.findByIdAndDelete(id).where("user", req.user._id);
+
+  if (deletedGoal.ok === 0) {
+    const errorMessage = `Can't delete goal with ${id} - Deleted goal${deletedGoal}`;
+    LogError(errorMessage);
     throw new Error(errorMessage);
   }
 
-  var deletedGoal = await Goal.findByIdAndDelete(id).where("user", req.user._id);;
-  var successMessage = `Deleted goal with id ${id}\n${deletedGoal}`;
-  Log(successMessage, "success");
+  const successMessage = `Deleted goal with id ${id}\n${deletedGoal}`;
+  LogSuccess(successMessage);
 
-  res.status(200).json({ id: id });
+  res.status(200).json({ id });
 });

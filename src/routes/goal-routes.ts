@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as goalController from "../controllers/goal-controller";
-import {protect} from '../middleware/authMiddleware'
+import { protect } from "../middleware/authMiddleware";
 
 const GoalRouter: Router = Router();
 
@@ -8,7 +8,10 @@ GoalRouter.route("/").get(protect, goalController.getGoals).post(protect, goalCo
 
 GoalRouter.route("/:id")
   .get(protect, goalController.getGoal)
-  .put(protect, goalController.updateGoal)
+  .patch(protect, goalController.updateGoal)
   .delete(protect, goalController.deleteGoal);
+
+GoalRouter.route("/complete/:id").patch(protect, goalController.completeGoal);
+GoalRouter.route("/reset/:id").patch(protect, goalController.resetGoal);
 
 export default GoalRouter;
