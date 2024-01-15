@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Goal from "../model/goal-model";
-import { LogError, LogSuccess } from "../util";
+import { Log, LogError, LogSuccess } from "../util";
 import { IGoal, IGoalUpdate } from "../interfaces";
 import { UpdateQuery } from "mongoose";
 
@@ -83,21 +83,32 @@ export const updateGoal = expressAsyncHandler(
 );
 
 export const setStatus = expressAsyncHandler(
-  async (req: Request<{ id: string }, object, { isCompleted: boolean }>, res: Response) => {
+  async (req: Request<{ id: string }, object, IGoalUpdate>, res: Response) => {
     const goalId = req.params.id;
     const userID = req.user._id;
-    const goalStatus = req.body;
+    const goalUpdate = req.body;
 
-    if (goalStatus.isCompleted === undefined) {
-      const errorMessage = `Can't toggle goal with ${goalId}`;
-      LogError(errorMessage);
-      res.status(400).json({ message: "Bad Request, did not include 'isCompleted: boolean'" });
-      throw new Error(errorMessage);
+    const updateQuery = {} as UpdateQuery<IGoal>;
+
+    if (goalUpdate.text !== undefined) {
+      updateQuery.text = goalUpdate.text;
     }
 
-    const updateQuery: UpdateQuery<IGoal> = goalStatus.isCompleted
-      ? { completeDate: new Date(Date.now()) }
-      : { $unset: { completeDate: "" } };
+    if (goalUpdate.isCompleted !== undefined) {
+      if (goalUpdate.isCompleted) {
+        updateQuery.$set = { ...updateQuery.$set, completeDate: new Date(Date.now()) };
+      } else {
+        updateQuery.$unset = { ...updateQuery.$unset, completeDate: "" };
+      }
+    }
+
+    if (goalUpdate.isAchieved !== undefined) {
+      if (goalUpdate.isAchieved) {
+        updateQuery.$set = { ...updateQuery.$set, archiveDate: new Date(Date.now()) };
+      } else {
+        updateQuery.$unset = { ...updateQuery.$unset, archiveDate: "" };
+      }
+    }
 
     const updatedGoal = await Goal.findByIdAndUpdate(goalId, updateQuery, { new: true }).where("user", userID);
 

@@ -17,6 +17,6 @@ export interface IUser {
 
 export interface IGoalUpdate {
   text?: string;
-  completeDate?: Date;
-  archiveDate?: Date;
+  isCompleted?: boolean;
+  isAchieved?: boolean;
 }
