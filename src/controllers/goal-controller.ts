@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Goal from "../model/goal-model";
-import { Log, LogError, LogSuccess } from "../util";
+import { LogError, LogSuccess } from "../util";
 import { IGoal, IGoalUpdate } from "../interfaces";
 import { UpdateQuery } from "mongoose";
 

@@ -1,0 +1,32 @@
+@user = {{hostname}}/users
+
+@goal = {{hostname}}/goals
+@goalId = 65a3aee8d288a6d38aea72a2
+
+POST {{user}}/login
+Content-Type: application/json
+
+{
+    "email": "{{username}}",
+    "password": "{{password}}"
+}
+
+###
+
+GET {{user}}/me
+Authorization: {{token}}
+
+###
+
+GET {{goal}}
+Authorization: {{token}}
+
+###
+
+PATCH {{goal}}/status/{{goalId}}
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+    "isCompleted": true
+}

@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "check": "prettier --check .",
     "lint": "eslint .",
-    "type-check": "tsc"
+    "type-check": "tsc",
+    "test": "vitest"
   },
   "repository": {
     "type": "git",
@@ -51,7 +52,8 @@
     "eslint-config-prettier": "^9.1.0",
     "nodemon": "^3.0.1",
     "prettier": "^3.2.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.1"
   },
   "nodemonConfig": {
     "restartable": "rs",
